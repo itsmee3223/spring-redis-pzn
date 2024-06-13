@@ -11,6 +11,7 @@ import org.springframework.data.redis.core.*;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -149,6 +150,23 @@ public class StringTest {
 
         assertEquals("ramanda", stringRedisTemplate.opsForValue().get("firstName"));
         assertEquals("asyraf", stringRedisTemplate.opsForValue().get("lastName"));
+    }
+
+    @Test
+    void pipeline(){
+        List<Object> list = stringRedisTemplate.executePipelined(new SessionCallback<Object>() {
+            @Override
+            public Object execute(RedisOperations operations) throws DataAccessException {
+                operations.opsForValue().set("firstName", "ramanda");
+                operations.opsForValue().set("middlename", "ajisaka");
+                operations.opsForValue().set("lastName", "asyraf");
+                return null;
+            }
+        });
+
+        assertThat(list, hasSize(3));
+        assertThat(list, hasItem(true));
+        assertThat(list, not(hasItem(false)));
     }
 }
 
