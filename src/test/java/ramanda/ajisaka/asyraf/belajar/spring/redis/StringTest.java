@@ -121,5 +121,15 @@ public class StringTest {
         assertEquals("toko b", sellers.getContent().get(0).getContent().getName());
         assertEquals("toko a", sellers.getContent().get(1).getContent().getName());
     }
+
+    @Test
+    void hyperLogLog() throws InterruptedException {
+        HyperLogLogOperations<String, String> operations = stringRedisTemplate.opsForHyperLogLog();
+        operations.add("traffics", "ramanda", "ajisaka", "asyraf");
+        operations.add("traffics", "rama", "aji", "saka");
+        operations.add("traffics", "ramanda", "ajisaka", "asyraf");
+
+        assertEquals(6L, operations.size("traffics"));
+    }
 }
 
