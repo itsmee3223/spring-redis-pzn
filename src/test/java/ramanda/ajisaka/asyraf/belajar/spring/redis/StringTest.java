@@ -4,10 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.ListOperations;
-import org.springframework.data.redis.core.SetOperations;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.*;
 
 import java.time.Duration;
 
@@ -62,6 +59,18 @@ public class StringTest {
         assertThat(operations.members("names"), hasItems("ramanda", "ajisaka", "asyraf"));
 
         stringRedisTemplate.delete("names");
+    }
+
+    @Test
+    void zSet() throws InterruptedException {
+        ZSetOperations<String, String> operations = stringRedisTemplate.opsForZSet();
+        operations.add("names", "ramanda", 100);
+        operations.add("names", "ajisaka", 50);
+        operations.add("names", "asyraf", 95);
+
+        assertEquals("ramanda", operations.popMax("names").getValue());
+        assertEquals("asyraf", operations.popMax("names").getValue());
+        assertEquals("ajisaka", operations.popMax("names").getValue());
     }
 }
 
