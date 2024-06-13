@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.geo.*;
+import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.core.*;
 
 import java.time.Duration;
@@ -94,6 +96,30 @@ public class StringTest {
         assertEquals("ramanda@mail.com", operations.get("user:1", "email"));
 
         stringRedisTemplate.delete("user:1");
+    }
+
+    @Test
+    void geo() throws InterruptedException {
+        GeoOperations<String, String> operations = stringRedisTemplate.opsForGeo();
+
+        operations.add("sellers", new Point(105.259247, -5.382675), "toko a");
+        operations.add("sellers", new Point(105.255272, -5.380674), "toko b");
+
+        Distance distance = operations.distance("sellers", "toko a", "toko b", Metrics.KILOMETERS);
+        assertEquals(0.4932, distance.getValue());
+
+        GeoResults<RedisGeoCommands.GeoLocation<String>> sellers = operations.search(
+                "sellers",
+                new Circle(
+                        new Point(105.258085, -5.382210),
+                        new Distance(5, Metrics.KILOMETERS)
+                )
+        );
+
+
+        assertEquals(2, sellers.getContent().size());
+        assertEquals("toko b", sellers.getContent().get(0).getContent().getName());
+        assertEquals("toko a", sellers.getContent().get(1).getContent().getName());
     }
 }
 
