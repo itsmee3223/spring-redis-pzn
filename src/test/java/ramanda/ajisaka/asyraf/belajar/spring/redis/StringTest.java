@@ -5,10 +5,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.ListOperations;
+import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import java.time.Duration;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 public class StringTest {
@@ -40,6 +46,22 @@ public class StringTest {
         Assertions.assertEquals("ramanda", operations.leftPop("names"));
         Assertions.assertEquals("ajisaka", operations.leftPop("names"));
         Assertions.assertEquals("asyraf", operations.leftPop("names"));
+    }
+
+    @Test
+    void set() throws InterruptedException {
+        SetOperations<String, String> operations = stringRedisTemplate.opsForSet();
+        operations.add("names", "ramanda");
+        operations.add("names", "ramanda");
+        operations.add("names", "ajisaka");
+        operations.add("names", "ajisaka");
+        operations.add("names", "asyraf");
+        operations.add("names", "asyraf");
+
+        Assertions.assertEquals(3, operations.members("names").size());
+        assertThat(operations.members("names"), hasItems("ramanda", "ajisaka", "asyraf"));
+
+        stringRedisTemplate.delete("names");
     }
 }
 
