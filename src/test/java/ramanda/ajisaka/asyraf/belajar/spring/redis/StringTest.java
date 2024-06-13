@@ -6,7 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.geo.*;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisGeoCommands;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.core.*;
 
 import java.time.Duration;
@@ -167,6 +172,36 @@ public class StringTest {
         assertThat(list, hasSize(3));
         assertThat(list, hasItem(true));
         assertThat(list, not(hasItem(false)));
+    }
+
+    @Test
+    void publish(){
+        StreamOperations<String, Object, Object> operations = stringRedisTemplate.opsForStream();
+        MapRecord<String, String, String> record = MapRecord.create("stream-1", Map.of(
+                "name", "ramanda",
+                "address", "Indonesia"
+        ));
+
+        for (int i = 0; i < 10; i++) {
+            operations.add(record);
+        }
+    }
+
+    @Test
+    void subscribe(){
+        StreamOperations<String, Object, Object> operations = stringRedisTemplate.opsForStream();
+        try {
+            operations.createGroup("stream-1", "sample-group");
+        } catch (RedisSystemException exception){
+            // group already exist
+        }
+
+        List<MapRecord<String, Object, Object>> records = operations.read(Consumer.from("sample-group", "sample1"),
+                StreamOffset.create("stream-1", ReadOffset.lastConsumed()));
+
+        for (MapRecord<String, Object, Object> record : records) {
+            System.out.println(record);
+        }
     }
 }
 
