@@ -7,6 +7,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.*;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.hamcrest.MatcherAssert.*;
@@ -71,6 +73,27 @@ public class StringTest {
         assertEquals("ramanda", operations.popMax("names").getValue());
         assertEquals("asyraf", operations.popMax("names").getValue());
         assertEquals("ajisaka", operations.popMax("names").getValue());
+    }
+
+    @Test
+    void hash() throws InterruptedException {
+        HashOperations<String, Object, Object> operations = stringRedisTemplate.opsForHash();
+//        operations.put("user:1", "id", "1");
+//        operations.put("user:1", "name", "ramanda");
+//        operations.put("user:1", "email", "ramanda@mail.com");
+
+        Map<Object, String> map = new HashMap<>();
+        map.put("id", "1");
+        map.put("name", "ramanda");
+        map.put("email", "ramanda@mail.com");
+
+        operations.putAll("user:1", map);
+
+        assertEquals("1", operations.get("user:1", "id"));
+        assertEquals("ramanda", operations.get("user:1", "name"));
+        assertEquals("ramanda@mail.com", operations.get("user:1", "email"));
+
+        stringRedisTemplate.delete("user:1");
     }
 }
 
