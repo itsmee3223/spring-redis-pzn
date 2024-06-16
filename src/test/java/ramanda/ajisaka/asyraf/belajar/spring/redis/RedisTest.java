@@ -25,12 +25,14 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.*;
 
 @SpringBootTest
-public class StringTest {
+public class RedisTest {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     @Test
     void redisTemplate(){
@@ -231,6 +233,25 @@ public class StringTest {
         List<String> names = stringRedisTemplate.opsForList().range("names", 0, -1);
         assertThat(list, hasItems("Ramanda", "Ajisaka", "Asyraf"));
         assertThat(names, hasItems("Ramanda", "Ajisaka", "Asyraf"));
+    }
+
+    @Test
+    void redisRepository(){
+        Product product = Product.builder()
+                .id("1")
+                .name("kamu")
+                .price(1000L)
+                .build();
+
+        productRepository.save(product);
+
+        Product product2 = productRepository.findById("1").get();
+        assertEquals(product, product2);
+
+        Map<Object, Object> map = stringRedisTemplate.opsForHash().entries("products:1");
+        assertEquals(product.getId(), map.get("id"));
+        assertEquals(product.getName(), map.get("name"));
+        assertEquals(product.getPrice().toString(), map.get("price"));
     }
 }
 
