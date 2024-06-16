@@ -7,6 +7,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.geo.*;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.Message;
+import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -201,6 +203,20 @@ public class StringTest {
 
         for (MapRecord<String, Object, Object> record : records) {
             System.out.println(record);
+        }
+    }
+
+    @Test
+    void pubSub(){
+        stringRedisTemplate.getConnectionFactory().getConnection().subscribe(new MessageListener() {
+            @Override
+            public void onMessage(Message message, byte[] pattern) {
+                System.out.println("Message: " + new String(message.getBody()));
+            }
+        }, "my-channel".getBytes());
+
+        for (int i = 0; i < 10; i++) {
+            stringRedisTemplate.convertAndSend("my-channel", "Hallo kamu");
         }
     }
 }
