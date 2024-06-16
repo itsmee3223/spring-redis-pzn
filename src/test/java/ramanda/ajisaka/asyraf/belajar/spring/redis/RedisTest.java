@@ -253,5 +253,22 @@ public class RedisTest {
         assertEquals(product.getName(), map.get("name"));
         assertEquals(product.getPrice().toString(), map.get("price"));
     }
+
+    @Test
+    void ttl() throws InterruptedException {
+        Product product = Product.builder()
+                .id("1")
+                .name("kamu")
+                .price(1000L)
+                .ttl(3L)
+                .build();
+
+        productRepository.save(product);
+
+        assertTrue(productRepository.findById("1").isPresent());
+        Thread.sleep(Duration.ofSeconds(5L));
+        assertFalse(productRepository.findById("1").isPresent());
+
+    }
 }
 
