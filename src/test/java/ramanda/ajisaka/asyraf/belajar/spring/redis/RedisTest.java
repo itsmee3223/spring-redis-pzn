@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.geo.*;
 import org.springframework.data.redis.RedisSystemException;
@@ -33,6 +35,9 @@ public class RedisTest {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private CacheManager cacheManager;
 
     @Test
     void redisTemplate(){
@@ -270,5 +275,19 @@ public class RedisTest {
         assertFalse(productRepository.findById("1").isPresent());
 
     }
-}
 
+    @Test
+    void cache(){
+        Cache scores = cacheManager.getCache("scores");
+        scores.put("Ramanda", 50);
+        scores.put("Kamu", 50);
+
+        assertEquals(scores.get("Kamu", Integer.class), scores.get("Ramanda", Integer.class));
+
+        scores.evict("Ramanda");
+        scores.evict("Kamu");
+        assertNull(scores.get("Ramanda", Integer.class));
+        assertNull(scores.get("Kamu", Integer.class));
+    }
+
+}
